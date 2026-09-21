@@ -1,0 +1,60 @@
+<!doctype html> <!-- //=> Pagina adaptada para o Briga; carrega no navegador, nao no ESP32. -->
+<html lang="pt-BR"> <!-- //=> Usa portugues nos controles e na leitura assistida. -->
+<head> <!-- //=> Reune configuracoes da pagina, sem executar comandos do robo. -->
+<meta charset="utf-8"> <!-- //=> Preserva acentos nos textos apresentados. -->
+<meta name="viewport" content="width=device-width, initial-scale=1"> <!-- //=> Faz o painel caber no celular sem reduzir a letra inteira. -->
+<title>Briga · configuração e debug</title> <!-- //=> Identifica esta pagina, que nao e compativel com o protocolo do SDK original. -->
+<link rel="stylesheet" href="estilo.css"> <!-- //=> Mantem o visual separado da logica do Bluetooth. -->
+<script src="briga.js" defer></script> <!-- //=> So inicializa os botoes depois que os elementos HTML existirem. -->
+</head> <!-- //=> Termina as configuracoes do navegador. -->
+<body> <!-- //=> Comeca o painel visivel; nenhuma acao inicia a luta pelo site. -->
+<header> <!-- //=> Agrupa identidade e acesso ao dispositivo. -->
+<div><p class="selo">TAMANDUTECH / MINI SUMÔ</p><h1>Briga</h1><p>Configuração e histórico de decisões</p></div> <!-- //=> Apresenta a finalidade sem substituir a estrategia do firmware. -->
+<div class="conexao"><span id="conexao">Desconectado</span><button id="conectar">Conectar ao robô</button><button id="desconectar" class="secundario" disabled>Desconectar</button></div> <!-- //=> A escolha BLE acontece somente ao clicar, como o navegador exige. -->
+</header> <!-- //=> Fecha a faixa superior. -->
+<main> <!-- //=> Conteudo principal para uso na bancada. -->
+<p class="aviso">Largada e parada continuam pelo controle infravermelho. Fechar esta página ou perder o Bluetooth <strong>não para os motores</strong>. Primeiro teste com rodas suspensas.</p> <!-- //=> Distingue comunicacao, captura e parada fisica. -->
+<p id="mensagem" role="status">Abra por HTTPS ou localhost, usando um navegador com Web Bluetooth.</p> <!-- //=> Informa falhas de conexao e respostas recusadas, sem carregar uma demonstracao falsa. -->
+<section> <!-- //=> Configuracao substitui as letras enviadas pelo terminal antigo. -->
+<div class="titulo"><h2>Antes da largada</h2><span id="permissao">Aguardando conexão</span></div> <!-- //=> Mostra se o firmware ainda permite mudar a preparacao. -->
+<div class="configuracao"> <!-- //=> Distribui os mesmos campos do menu original. -->
+<label>Abertura<select id="estrategia" disabled><option value="A">A · Aquele lá</option><option value="z">z · Básico, sem movimento inicial</option><option value="f">f · Frentão progressivo</option><option value="F">F · Frentão anti-pescador</option><option value="b">b · Costas</option><option value="c">c · Curva leve</option><option value="C">C · Curva pesada</option><option value="e">e · Desempate</option><option value="v">v · Movimentação em V</option><option value="d">d · Diagonal rápida</option><option value="g">g · Giro 90°</option></select></label> <!-- //=> Preserva letras e nomes; nao oferece j, que era um laco de movimento infinito. -->
+<label>Lado inicial<select id="lado" disabled><option value="<">Esquerda</option><option value=">">Direita</option><option value="=">Frente (b, f, F ou z)</option></select></label> <!-- //=> Usa os mesmos simbolos e rejeita combinacoes antigas que nao tratavam frente. -->
+<label>Bandeira<select id="bandeira" disabled><option value="r">Direita</option><option value="l">Esquerda</option></select></label> <!-- //=> Escolhe a configuracao sem movimentar o servo pela pagina. -->
+<label class="check"><input id="debug" type="checkbox" disabled> Debug ligado neste ensaio</label> <!-- //=> Com debug, STOP trava sem reset; sem debug, permanece o reinicio original. -->
+<button id="salvar" disabled>Aplicar configuração</button> <!-- //=> Mostra sucesso somente quando o loop confirmou a aplicacao. -->
+</div> <!-- //=> Fecha os campos de configuracao. -->
+<p id="confirmado" class="nota">Nenhuma configuração consultada.</p> <!-- //=> Separa a selecao na tela dos valores confirmados na placa. -->
+</section> <!-- //=> Termina o bloco de preparacao. -->
+<section> <!-- //=> Quadro periodico substitui valores, sem gerar linhas repetidas de log. -->
+<div class="titulo"><h2>Situação atual</h2><span id="atualizacao">Sem dados</span></div> <!-- //=> A idade permite perceber dados antigos ou perda de comunicacao. -->
+<div class="quadros"> <!-- //=> Mostra fase, estado e comando como informacoes diferentes. -->
+<div class="quadro"><span>Fase</span><strong id="fase">—</strong></div> <!-- //=> Distingue configuracao, abertura, busca e STOP. -->
+<div class="quadro"><span>Estado da busca</span><strong id="estado">—</strong><small id="duracaoEstado">Duração desconhecida</small></div> <!-- //=> O tempo vem do ESP32, nao do intervalo entre pacotes BLE. -->
+<div class="quadro"><span>Comando dos motores E / D</span><strong id="motores">—</strong><small>Não é velocidade medida das rodas</small></div> <!-- //=> Nao presume sensores de velocidade que o Briga nao possui. -->
+<div class="quadro"><span>Progresso do controle</span><strong id="ciclos">—</strong><small id="tempoCiclo">—</small></div> <!-- //=> Uma resposta Bluetooth sozinha nao demonstra progresso da BuscaCorna. -->
+</div> <!-- //=> Fecha os indicadores atuais. -->
+<div class="sensores" id="sensores">Sensores ainda não consultados.</div> <!-- //=> Usa o quadro publicado na task, sem outra leitura analogica pelo BLE. -->
+</section> <!-- //=> Termina o quadro de situacao. -->
+<section> <!-- //=> Historico recebe acontecimentos gravados, inclusive os que ocorreram entre consultas. -->
+<div class="titulo"><h2>Histórico do ensaio</h2><span id="captura">Captura não consultada</span></div> <!-- //=> Mostra a sessao e o estado da gravacao remota. -->
+<div class="botoes"> <!-- //=> Separa operacoes de captura e consulta. -->
+<button id="nova" disabled>Nova captura</button> <!-- //=> Apaga o historico remoto depois de confirmacao, sem reiniciar o robo. -->
+<button id="congelar" class="secundario" disabled>Congelar captura</button> <!-- //=> Para somente as novas insercoes no buffer. -->
+<button id="retomar" class="secundario" disabled>Retomar captura</button> <!-- //=> Nao desfaz STOP nem permite outro movimento. -->
+<button id="consultas" class="secundario" disabled>Pausar consultas</button> <!-- //=> Interrompe pedidos BLE; o ESP32 pode continuar gravando. -->
+<button id="exportar" class="secundario">Exportar CSV</button> <!-- //=> Exporta tudo ainda retido no navegador, nao apenas o filtro visivel. -->
+</div> <!-- //=> Fecha os comandos de historico. -->
+<div class="filtros"> <!-- //=> Filtros mudam apenas a tela, nunca o que a estrategia faz. -->
+<label>Mostrar<select id="filtro"><option value="todos">Tudo</option><option value="estados">Estados e fases</option><option value="linha">Recuperações da linha</option><option value="motores">Motores</option><option value="marcas">Marcas da captura</option></select></label> <!-- //=> Permite investigar linha sem perder os outros eventos recebidos. -->
+<label class="check"><input type="checkbox" id="pausarTela"> Pausar atualização da tabela</label> <!-- //=> Continua recebendo mesmo enquanto o operador le um trecho parado. -->
+</div> <!-- //=> Fecha os controles apenas visuais. -->
+<p id="perdas" class="nota">O ESP32 guarda os 256 eventos mais recentes. A página retém até 10.000 entradas.</p> <!-- //=> Nao promete historico ilimitado nem recuperacao do que ja foi sobrescrito. -->
+<div class="tabela"><table><thead><tr><th>Evento / tempo</th><th>O que aconteceu</th><th>Duração</th><th>Ciclo / fuga</th><th>Motores E / D</th><th>Leituras / motivo</th></tr></thead><tbody id="registros"></tbody></table></div> <!-- //=> Cada linha e um acontecimento, nao uma amostra repetida em cada loop. -->
+<div class="paginacao"><button id="anteriores" class="secundario">Anteriores</button><span id="pagina">Sem eventos</span><button id="recentes" class="secundario">Mais recentes</button></div> <!-- //=> Permite ler trechos antigos sem limitar a exportacao as linhas visiveis. -->
+<p class="nota">No celular, arraste a tabela para o lado para ver todas as colunas. FIM_LINHA significa que o bloco de fuga terminou; não confirma piso preto. As leituras anexadas são a última amostra publicada, com horário próprio. “Parcial” significa que não observamos o começo integral do estado.</p> <!-- //=> Explica os limites concretos do registro sem alterar a tatica. -->
+</section> <!-- //=> Termina o historico. -->
+</main> <!-- //=> Fecha a area principal do painel. -->
+<footer>Briga · BLE local · nenhuma dependência externa na página · firmware e página precisam ser desta mesma entrega</footer> <!-- //=> Evita misturar o protocolo adaptado com a pagina original do SDK. -->
+</body> <!-- //=> Termina o conteudo visivel. -->
+</html> <!-- //=> Fecha o documento HTML. -->
